@@ -1,5 +1,5 @@
 # tests/test_qc_gate.py
-from mage.pipelines.full_daily.blocks.b06_qc_gate import qc_check
+from mage.transformers.b06_qc_gate import qc_check
 
 
 def test_qc_gate():

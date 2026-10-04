@@ -1,0 +1,15 @@
+project_type: standalone
+
+variables_dir: ~/.mage_data
+variables_retention_period: '90d'
+
+# Alert chung của Mage (Slack webhook, optional).
+# Webhook generic success/failed của pipeline nằm trong block b06 (urllib, env ALERT_WEBHOOK_URL).
+notification_config:
+  alert_on:
+  - trigger_failure
+  slack_config:
+    webhook_url: "{{ env_var('MAGE_SLACK_WEBHOOK_URL') }}"
+
+help_improve_mage: false
+project_uuid: 989a83f85b8d4d8ab52c45e01efe7643

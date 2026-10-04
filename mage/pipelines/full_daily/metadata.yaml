@@ -1,4 +1,70 @@
+blocks:
+- all_upstream_blocks_executed: true
+  downstream_blocks:
+  - b02_pipeline_entities
+  name: b01_generate
+  status: not_executed
+  type: data_loader
+  upstream_blocks: []
+  uuid: b01_generate
+- all_upstream_blocks_executed: true
+  downstream_blocks:
+  - b03_pipeline_telemetry
+  name: b02_pipeline_entities
+  status: not_executed
+  type: transformer
+  upstream_blocks:
+  - b01_generate
+  uuid: b02_pipeline_entities
+- all_upstream_blocks_executed: true
+  downstream_blocks:
+  - b04_pipeline_crm_dms_charging
+  name: b03_pipeline_telemetry
+  status: not_executed
+  type: transformer
+  upstream_blocks:
+  - b02_pipeline_entities
+  uuid: b03_pipeline_telemetry
+- all_upstream_blocks_executed: true
+  downstream_blocks:
+  - b05_dbt_build
+  name: b04_pipeline_crm_dms_charging
+  status: not_executed
+  type: transformer
+  upstream_blocks:
+  - b03_pipeline_telemetry
+  uuid: b04_pipeline_crm_dms_charging
+- all_upstream_blocks_executed: true
+  downstream_blocks:
+  - b06_qc_gate
+  name: b05_dbt_build
+  status: not_executed
+  type: transformer
+  upstream_blocks:
+  - b04_pipeline_crm_dms_charging
+  uuid: b05_dbt_build
+- all_upstream_blocks_executed: true
+  downstream_blocks:
+  - b07_metabase_refresh
+  name: b06_qc_gate
+  status: not_executed
+  type: transformer
+  upstream_blocks:
+  - b05_dbt_build
+  uuid: b06_qc_gate
+- all_upstream_blocks_executed: true
+  downstream_blocks: []
+  name: b07_metabase_refresh
+  status: not_executed
+  type: data_exporter
+  upstream_blocks:
+  - b06_qc_gate
+  uuid: b07_metabase_refresh
 name: full_daily
-schedule: "0 1 * * *"
-timezone: Asia/Ho_Chi_Minh
-retries: { b01: 2, b02: 2, b03: 2, b04: 2, b05: 1, b07: 1 }
+type: python
+uuid: full_daily
+widgets: []
+description: >-
+  Daily Lakehouse: generate -> pipeline 6 nguon (entities -> telemetry ->
+  crm/dms/charging) -> dbt run/test -> qc_gate -> metabase refresh.
+  Trigger voi runtime variable batch_date=YYYY-MM-DD.

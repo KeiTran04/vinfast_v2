@@ -1,3 +1,15 @@
+blocks:
+- all_upstream_blocks_executed: true
+  downstream_blocks: []
+  name: backfill_runner
+  status: not_executed
+  type: transformer
+  upstream_blocks: []
+  uuid: backfill_runner
 name: backfill
-params: { start_date: "2026-08-10", end_date: "2026-08-12" }
-calls: full_daily
+type: python
+uuid: backfill
+widgets: []
+description: >-
+  Chay lai full_daily theo khoang ngay. Trigger voi runtime variables
+  start_date/end_date (YYYY-MM-DD); moi ngay lap lai chuoi lenh cua full_daily.

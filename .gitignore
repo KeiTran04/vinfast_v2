@@ -9,5 +9,7 @@ Vinfast_v1/dbt_project/dbt_packages/
 Vinfast_v1/dbt_project/target/
 Vinfast_v1/dbt_project/logs/
 Vinfast_v1/metabase/plugins/sample-database.sqlite
+# Mage runtime (sinh ra khi server boot)
+mage/.ssh_tunnel/
 __pycache__/
 *.pyc

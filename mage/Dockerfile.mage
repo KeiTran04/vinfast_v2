@@ -1,4 +1,15 @@
 FROM mageai/mageai:0.9.72
 COPY requirements.mage.txt /tmp/requirements.mage.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.mage.txt
+# Base image kem adapter dbt 1.7.x (regular package dbt/adapters) che namespace
+# cua dbt-adapters -> dbt-core 1.12 crash "No module named 'dbt.adapters.factory'".
+# Go cac adapter thua, ROI CAI DAT LAI dbt tu wheel sach (uninstall co the xoa
+# nham file dung chung path giua adapter cu/moi).
+RUN pip uninstall -y dbt-bigquery dbt-duckdb dbt-fabric dbt-mysql dbt-postgres \
+    dbt-redshift dbt-snowflake dbt-spark dbt-sqlserver dbt-synapse dbt-trino \
+    && pip install --force-reinstall --no-cache-dir -r /tmp/requirements.mage.txt
+# Cai lai rieng dbt-adapters o layer rieng: uninstall adapter cu co the xoa nham
+# file dung chung path (dbt/adapters/__init__.py, factory.py...). Verify ngay tai build.
+RUN pip install --force-reinstall --no-cache-dir --no-deps dbt-adapters==1.24.5 \
+    && python -c "from dbt.adapters.factory import register_adapter" \
+    && python -c "import dbt.adapters.clickhouse"
 WORKDIR /home/code

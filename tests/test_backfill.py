@@ -1,5 +1,5 @@
 # tests/test_backfill.py
-from mage.pipelines.backfill.blocks.run_range import iter_dates
+from mage.transformers.backfill_runner import iter_dates
 
 
 def test_iter_dates_range():

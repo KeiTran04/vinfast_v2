@@ -94,15 +94,41 @@ python -m src.pipeline.cli run --source crm --date 2026-08-10
 
 ## 5. Trigger `full_daily` trên Mage (đường chính)
 
-1. Mở Mage http://localhost:6789 → pipeline `full_daily`
-   (schedule `0 1 * * *`, timezone `Asia/Ho_Chi_Minh` — xem
-   `mage/pipelines/full_daily/metadata.yaml`).
-2. Trigger thủ công với runtime variable `batch_date=YYYY-MM-DD`
-   (ví dụ `2026-08-10`). Các block chạy tuần tự:
-   `b01_generate` → `b02_entities` → `b03_telemetry` →
-   `b04_crm_dms` → `b05_dbt_build` → `b06_qc_gate` → `b07_metabase_refresh`.
-3. `b06_qc_gate` chặn pipeline nếu lệch count: entities tolerance 0%
-   (`diff > 0` là đỏ), telemetry tolerance 1%.
+`mage/` là Mage project thật (`metadata.yaml` project + `pipelines/*/metadata.yaml`
+đúng schema + blocks trong `data_loaders/`, `transformers/`, `data_exporters/`).
+Mage đọc code trực tiếp từ mount `./mage` nên sửa file là có hiệu lực ngay,
+không cần rebuild (chỉ rebuild khi đổi `Dockerfile.mage`/`requirements.mage.txt`).
+
+1. Mở Mage http://localhost:6789 → Pipelines → `full_daily` (7 blocks) và `backfill`.
+2. Tạo schedule 1 lần: POST `/api/pipelines/full_daily/pipeline_schedules`
+   `{"pipeline_schedule": {"name": "manual", "schedule_type": "api"}}`
+   → PUT `/api/pipeline_schedules/{id}` `{"pipeline_schedule": {"status": "active"}}`.
+   (POST thẳng `/api/pipeline_schedules` sẽ 500 — schedule lồng dưới pipeline.)
+3. Trigger run: POST `/api/pipeline_schedules/{id}/pipeline_runs`
+   `{"pipeline_run": {"variables": {"batch_date": "2026-08-10"}}}`
+   — chú ý key số ít `pipeline_run` (dùng `pipeline_runs` sẽ bị lặng lẽ bỏ variables).
+   Biến `batch_date` tới từng block qua `kwargs` (fallback env `BATCH_DATE`).
+4. Retry từ block giữa chừng: PUT `/api/pipeline_runs/{id}`
+   `{"pipeline_run": {"pipeline_run_action": "retry_blocks",
+   "from_block_uuid": "b06_qc_gate"}}`.
+5. Theo dõi: GET `/api/pipeline_runs/{id}` (status) và
+   `/api/pipeline_runs/{id}/block_runs` (từng block); log chi tiết trong
+   `docker logs de_prj-mageai-1`.
+6. `b06_qc_gate` chặn pipeline nếu lệch count: entities (snapshot vehicles
+   vs `mart_vehicle_360`) tolerance 0%, telemetry tolerance 1% — nhánh
+   telemetry so Silver `charging_internal/{date}` (sessions/ngày, cùng đơn vị
+   với mart) vs `mart_charging_analytics` slice cùng ngày, KHÔNG so Silver
+   telemetry raw events với mart sessions (khác đơn vị, từng gây fail oan
+   `diff=0.9983`). Cảnh báo: `full_daily` viết crm/dms/charging theo đúng
+   1 `batch_date` — đừng trộn nhiều batch thủ công (staging đọc glob `*`,
+   2 partitions → rớt test unique `customer_id`; xem bẫy partition ở §4).
+
+> Bài học đã gặp: file block sửa xong phải **không BOM** (PowerShell
+> `Set-Content -Encoding utf8` thêm BOM → Mage `exec` SyntaxError
+> `U+FEFF`). Decorator phải giữ mẫu `if 'x' not in globals()` (ghi đè
+> collector của executor → fail `no decorated functions`). Block không
+> upstream thì signature chỉ `(*args, **kwargs)` (kẻo fail
+> `missing upstream dependencies`).
 
 ## 6. Backfill một khoảng ngày
 
