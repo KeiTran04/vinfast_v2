@@ -5,3 +5,6 @@ pyyaml
 clickhouse-connect
 dbt-core==1.12.3
 dbt-clickhouse==1.9.3
+# mageai 0.9.72 kèm typer 0.9.0, vỡ với click>=8.2 mà dbt-core 1.12.3 đòi hỏi
+# (Secondary flag...). Nâng typer lên bản chịu được click mới, giữ mage nguyên.
+typer==0.16.0

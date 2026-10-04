@@ -1,0 +1,41 @@
+customer_code,full_name,phone_number,email,customer_status,registered_date,city
+CUS-CRM-00001,Bui Xuan Dung,0335796444,bui.xuan.dung54@yahoo.com,inactive,2025-10-08,NA
+CUS-CRM-00002,Hoang Thanh Lan,0884186703,,inactive,2026-07-10,DN
+CUS-CRM-00003,Tran Thanh Thao,097 603 4922,tran.thanh.thao96@yahoo.com,churned,2025-03-08,NA
+CUS-CRM-00004,Hoang Thanh Lan,+84884186703,hoang.thanh.lan74@yahoo.com,lead,2025-08-08,HT
+CUS-CRM-00005,Hoang Thanh Lan,088 418 6703,hoang.thanh.lan74@yahoo.com,active,2026-06-24,NA
+CUS-CRM-00006,Le Anh Hai,+84390777647,le.anh.hai26@yahoo.com,active,2026-06-21,NA
+CUS-CRM-00007,Tran Quang,+84896771344,tran.quang92@yahoo.com,churned,2025-07-14,DN
+CUS-CRM-00008,Le Anh Hai,0390777647,le.anh.hai15@gmail.com,active,2025-10-14,DN
+CUS-CRM-00009,Tran Thanh Thao,+84976034922,tran.thanh.thao33@outlook.com,lead,2025-01-22,TN
+CUS-CRM-00010,Bui Thanh Dat,+84975316612,bui.thanh.dat74@outlook.com,churned,2025-03-22,QN
+CUS-CRM-00011,Ngo Bao Binh,0898261773,ngo.bao.binh13@outlook.com,churned,2026-02-20,DN
+CUS-CRM-00012,Bui Ngoc,+84902808292,bui.ngoc90@yahoo.com,active,2024-11-20,QN
+CUS-CRM-00013,Vo Duc Hai,0970107764,vo.duc.hai98@gmail.com,active,2025-01-25,NA
+CUS-CRM-00014,Bui Xuan Dung,0335796444,bui.xuan.dung46@yahoo.com,churned,2026-07-28,QN
+CUS-CRM-00015,Tran Anh Huong,0864806205,tran.anh.huong20@vinfast.vn,active,2025-04-07,SG
+CUS-CRM-00016,Pham Thao,+84344854420,pham.thao38@vinfast.vn,active,2025-10-04,TH
+CUS-CRM-00017,Pham Minh Lam,0920691259,pham.minh.lam71@yahoo.com,active,2025-01-12,SG
+CUS-CRM-00018,Vo Huu Dung,033 903 9314,vo.huu.dung37@vinfast.vn,active,2026-03-09,TN
+CUS-CRM-00019,Le Xuan Ngoc,092 717 4091,le.xuan.ngoc63@outlook.com,active,2025-11-23,HT
+CUS-CRM-00020,Do Ngoc Trang,0967423576,do.ngoc.trang77@outlook.com,inactive,2025-12-07,DN
+CUS-CRM-00021,Ha Bao Lam,+84385222978,ha.bao.lam82@vinfast.vn,lead,2025-10-22,HN
+CUS-CRM-00022,Ngo Duc Long,+84881995112,ngo.duc.long50@gmail.com,active,2026-09-19,TN
+CUS-CRM-00023,Vo Van Phuc,+84335683839,vo.van.phuc54@vinfast.vn,active,2025-09-08,HT
+CUS-CRM-00024,Nguyen Minh Khoa,+84345942003,nguyen.minh.khoa89@gmail.com,churned,2025-02-03,HN
+CUS-CRM-00025,Ly Thi Ngoc,0398929385,ly.thi.ngoc79@outlook.com,lead,2025-04-13,HT
+CUS-CRM-00026,Le Anh Quang,0373662201,le.anh.quang24@yahoo.com,active,2026-04-18,TN
+CUS-CRM-00027,Bui Duc Hai,0352279698,bui.duc.hai52@yahoo.com,active,2024-11-02,TN
+CUS-CRM-00028,Vo Kim Linh,+84912170256,vo.kim.linh91@gmail.com,lead,2025-07-13,QN
+CUS-CRM-00029,Ngo Thi Tuan,0887199184,ngo.thi.tuan62@vinfast.vn,active,2024-11-24,HT
+CUS-CRM-00030,Cao Quang Linh,0931150544,cao.quang.linh74@vinfast.vn,churned,2025-02-28,QN
+CUS-CRM-00031,Vo Thi Thao,0927046749,vo.thi.thao78@outlook.com,active,2025-04-14,DN
+CUS-CRM-00032,Mai Quang Long,0971910954,mai.quang.long21@outlook.com,active,2025-08-27,SG
+CUS-CRM-00033,Le Duc Huong,087 078 9412,le.duc.huong85@gmail.com,active,2025-10-20,HN
+CUS-CRM-00034,Ngo Kim Trang,0862943403,ngo.kim.trang75@vinfast.vn,active,2026-07-16,TN
+CUS-CRM-00035,Dinh Anh Binh,+84926906166,dinh.anh.binh18@vinfast.vn,lead,2026-04-08,HN
+CUS-CRM-00036,Hoang Anh Hai,0909269000,,lead,2025-07-19,HT
+CUS-CRM-00037,Hoang Van Lan,+84399917868,,active,2025-11-05,HT
+CUS-CRM-00038,Hoang Thanh Hoa,0326084187,hoang.thanh.hoa11@yahoo.com,active,2025-05-04,HN
+CUS-CRM-00039,Tran Xuan An,0902847413,tran.xuan.an18@yahoo.com,active,2025-07-29,QN
+CUS-CRM-00040,Do Huu Dat,0949534556,do.huu.dat49@vinfast.vn,active,2026-06-18,SG

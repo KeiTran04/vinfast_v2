@@ -1,0 +1,22 @@
+
+  
+    
+    
+    
+        
+         
+
+
+        insert into `vinfast`.`mart_charging_revenue__dbt_backup`
+        ("station_id", "charger_type", "session_count", "total_kwh", "total_revenue_vnd", "avg_kwh")
+
+select
+    station_id,
+    charger_type,
+    count(*) as session_count,
+    sum(kwh_delivered) as total_kwh,
+    sum(cost_vnd) as total_revenue_vnd,
+    avg(kwh_delivered) as avg_kwh
+from `vinfast`.`stg_charging_ext`
+group by station_id, charger_type
+  

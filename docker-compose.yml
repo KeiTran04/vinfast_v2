@@ -59,6 +59,7 @@ services:
     env_file: .env
     environment:
       MINIO_ENDPOINT: http://minio:9000
+      S3_ADDRESSING_STYLE: path
       CLICKHOUSE_HOST: clickhouse
       MAGE_LOG_DIR: /home/src/logs
       PYTHONPATH: /home/code:/home/code/src

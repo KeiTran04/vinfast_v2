@@ -1,0 +1,19 @@
+{
+  "dataset_name": "telemetry",
+  "total_rows": 12802,
+  "is_valid": true,
+  "results": [
+    {
+      "check_name": "primary_key_uniqueness",
+      "passed": true,
+      "message": "Kh\u00f3a ch\u00ednh ['vehicle_id', 'event_timestamp'] \u0111\u1ea3m b\u1ea3o t\u00ednh duy nh\u1ea5t.",
+      "details": {
+        "duplicate_count": 0,
+        "pk_columns": [
+          "vehicle_id",
+          "event_timestamp"
+        ]
+      }
+    }
+  ]
+}

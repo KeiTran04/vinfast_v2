@@ -35,33 +35,54 @@ backfill theo ngày, và fallback chạy tay khi Mage down.
 
 ## 3. URLs sau khi `compose up`
 
-| Service    | URL                   |
-|------------|-----------------------|
-| Mage       | http://localhost:6789 |
-| MinIO UI   | http://localhost:9101 |
-| ClickHouse | http://localhost:8123 |
-| Metabase   | http://localhost:3000 |
+| Service    | URL                   | Ghi chú |
+|------------|-----------------------|---------|
+| Mage       | http://localhost:6789 | UI orchestration (200 = sống) |
+| S3 (Moto)  | http://localhost:9100 | API S3, **không có console UI** |
+| ClickHouse | http://localhost:8123 | |
+| Metabase   | http://localhost:3000 | setup lần đầu, driver jar đã kèm sẵn |
 
 Credentials MinIO/ClickHouse lấy từ `.env` (`vinfast` / `vinfast123` mặc định).
-MinIO S3 API: `http://localhost:9100`. Buckets seed tự động:
-`vinfast-bronze`, `vinfast-silver`, `vinfast-gold` (service `minio-init`).
 
-## 4. Chạy tay 3 lệnh gốc khi Mage down
+> **Lưu ý S3:** service `minio` trong compose là **Moto server**
+> (`motoserver/moto`), không phải MinIO thật — vì `minio/minio` đã bị gỡ
+> khỏi Docker Hub, `quay.io` chặn pull ẩn danh, `dl.min.io` trả 410.
+> Buckets (`vinfast-bronze/silver/gold`) **tự tạo bởi pipeline**
+> (`lander.py`/`conformer.py` ensure-bucket), không còn service `minio-init`/`mc`.
+> Moto lưu in-memory (restart container là mất data S3 → chạy lại pipeline).
+> Kiểm tra data bằng boto3/python thay vì console UI. SQL `s3('http://minio:9000/...')`
+> của dbt giữ nguyên vì tên service + port trong compose không đổi.
 
-Chạy từ thư mục `Vinfast_v1/` (pipeline gốc, không qua Mage):
+## 4. Chạy tay khi Mage down (đường chính local)
+
+Chạy từ thư mục `Vinfast_v1/` (pipeline gốc, không qua Mage).
+Mọi lệnh Python cần 2 env (tránh lỗi encoding + để boto3 nói chuyện với Moto):
 
 ```powershell
 $env:PYTHONUTF8 = 1
+$env:S3_ADDRESSING_STYLE = "path"
 cd Vinfast_v1
-python -m src.data_generator.cli generate --start-date 2026-08-10 --end-date 2026-08-10 --vehicles 5 --seed 42
-python -m src.pipeline.cli run --all --date 2026-08-10
-python -m dbt.cli.main run --full-refresh --profiles-dir .  # cd dbt_project trước
-python -m dbt.cli.main test --profiles-dir .                # cd dbt_project trước
+python -m src.data_generator.cli generate --start-date 2026-08-10 --end-date 2026-08-12 --seed 42
+python -m src.data_generator.cli mock-raw --source all --seed 42
+python -m src.pipeline.cli run --source entities --date 2026-08-29
+foreach ($d in @("2026-08-10","2026-08-11","2026-08-12")) {
+  python -m src.pipeline.cli run --source telemetry --source charging_internal --date $d
+}
+python -m src.pipeline.cli run --source crm --source dms --source charging --date 2026-08-29
+cd dbt_project
+$env:CLICKHOUSE_HOST = "localhost"
+python -m dbt.cli.main deps --profiles-dir .
+python -m dbt.cli.main run --profiles-dir . --target docker
+python -m dbt.cli.main test --profiles-dir . --target docker
+cd ..\..
+python metabase/setup_dashboards.py --base-url http://localhost:3000  # ở Vinfast_v1/
 ```
 
-Lệnh 1 sinh dữ liệu mẫu, lệnh 2 chạy toàn bộ nguồn pipeline
-(entities/telemetry/crm/dms/charging), lệnh 3–4 build + test dbt marts.
-Tương đương các block Mage `b01` → `b04` → `b05`.
+> **Bẫy partition đã gặp:** staging đọc glob `*` nên mỗi nguồn phi-telemetry
+> chỉ được ghi đúng **1 batch_date** (29). Đừng chạy `--all` thêm ngày khác
+> cho crm/dms/charging (đã từng gây duplicate `customer_id` → rớt test
+> `unique_mart_customer_360_customer_id`). Lỡ ghi thừa thì xóa partition thừa
+> bằng boto3 `delete_object` rồi chạy lại `dbt run/test`.
 
 Kiểm tra nhanh từng nguồn:
 
@@ -121,10 +142,14 @@ trước `b06_qc_gate` (không ghi Gold bẩn).
 
 ## 9. Sự cố thường gặp
 
-- **MinIO đỏ / không kết nối:** kiểm tra `docker compose ps minio`,
-  `MINIO_ENDPOINT` (`http://minio:9000` trong compose, `http://localhost:9100`
-  từ host), user/pass trong `.env`; fallback local `data/bronze/` khi MinIO
-  không khả dụng.
+- **S3 (Moto) đỏ / không kết nối:** `docker compose ps minio`,
+  `docker logs de_prj-minio-1`; endpoint trong compose `http://minio:9000`,
+  từ host `http://localhost:9100`; boto3 cần `S3_ADDRESSING_STYLE=path`.
+  Moto in-memory → restart là mất data, chạy lại pipeline là có.
+- **Mage build/start fail (`Secondary flag...`):** image `mageai` kèm
+  `typer 0.9.0`, `pip install` dbt nâng `click>=8.2` gây vỡ. Đã fix bằng
+  `typer==0.16.0` trong `mage/requirements.mage.txt` — đừng xóa dòng đó.
+  Build lại: `docker compose build mageai && docker compose up -d mageai`.
 - **ClickHouse đỏ:** kiểm tra healthcheck `SELECT 1`, user/pass/db trong `.env`
   (`CLICKHOUSE_HOST=clickhouse` trong compose); dbt profile
   `Vinfast_v1/dbt_project/profiles.yml` phải khớp.
