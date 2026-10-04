@@ -71,6 +71,7 @@ services:
     environment:
       MINIO_ENDPOINT: http://minio:9000
       CLICKHOUSE_HOST: clickhouse
+      MAGE_LOG_DIR: /home/src/logs
       PYTHONPATH: /home/code:/home/code/src
     volumes:
       - ./Vinfast_v1:/home/code

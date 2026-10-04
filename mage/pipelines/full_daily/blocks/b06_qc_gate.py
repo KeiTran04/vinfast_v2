@@ -12,6 +12,18 @@ def qc_check(silver_count: int, gold_count: int, kind: str) -> bool:
     raise RuntimeError(f"qc_gate {kind} mismatch silver={silver_count} gold={gold_count} diff={diff:.4f} tol={tol}")
 
 
+def _silver_parquet_rowcount(s3, bucket: str, key: str) -> int:
+    import io
+    obj = s3.get_object(Bucket=bucket, Key=key)
+    data = obj["Body"].read()
+    try:
+        import pyarrow.parquet as pq
+        return pq.read_table(io.BytesIO(data)).num_rows
+    except ImportError:
+        import pandas as pd
+        return len(pd.read_parquet(io.BytesIO(data)))
+
+
 def main(batch_date: str):
     # doc Silver via boto3 + Gold via clickhouse-connect, so 2 cap entities/telemetry
     import boto3, clickhouse_connect
@@ -22,7 +34,13 @@ def main(batch_date: str):
                                        username=os.environ.get("CLICKHOUSE_USER", "vinfast"),
                                        password=os.environ.get("CLICKHOUSE_PASSWORD", "vinfast123"),
                                        database=os.environ.get("CLICKHOUSE_DB", "vinfast"))
-    # dem toi thieu: entities users snapshot + telemetry day
-    silver_entities = s3.list_objects_v2(Bucket="vinfast-silver", Prefix="entities/users/").get("KeyCount", 0)
-    gold_users = ch.query("SELECT count() AS c FROM vinfast.mart_customer_360").result_rows[0][0]
-    qc_check(1 if silver_entities > 0 else 0, 1 if gold_users > 0 else 0, "entities")
+    bucket = os.environ.get("SILVER_BUCKET", "vinfast-silver")
+    # cap 1 entities snapshot 0%: Silver vehicles parquet vs Gold mart_vehicle_360
+    silver_entities = _silver_parquet_rowcount(s3, bucket, "entities/vehicles/data.parquet")
+    gold_vehicles = ch.query("SELECT count() AS c FROM vinfast.mart_vehicle_360").result_rows[0][0]
+    qc_check(silver_entities, int(gold_vehicles), "entities")
+    # cap 2 telemetry <1% (spec §6): Silver telemetry {date} parquet vs Gold mart count (same-day slice)
+    silver_telemetry = _silver_parquet_rowcount(s3, bucket, f"telemetry/{batch_date}/data.parquet")
+    gold_telemetry = ch.query(
+        f"SELECT count() AS c FROM vinfast.mart_charging_analytics WHERE toDate(started_at) = toDate('{batch_date}')").result_rows[0][0]
+    qc_check(silver_telemetry, int(gold_telemetry), "telemetry")
