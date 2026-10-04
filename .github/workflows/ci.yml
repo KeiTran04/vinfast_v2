@@ -37,8 +37,8 @@ jobs:
       - name: Start s3 mock and clickhouse
         run: |
           docker run -d --name minio -p 9100:9000 \
-            -e MOTO_S3_DEFAULT_KEY_BUFFER_SIZE=1048576 \
-            motoserver/moto:5.2.3 moto_server s3 -H 0.0.0.0 -p 9000
+            --entrypoint moto_server \
+            motoserver/moto:5.2.3 s3 -H 0.0.0.0 -p 9000
           docker run -d --name clickhouse --link minio:minio -p 8123:8123 -p 9000:9000 \
             -e CLICKHOUSE_USER=vinfast -e CLICKHOUSE_PASSWORD=vinfast123 -e CLICKHOUSE_DB=vinfast \
             clickhouse/clickhouse-server:24.8
