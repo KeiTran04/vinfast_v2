@@ -1,0 +1,4 @@
+from blocks._runner import run_cli
+def main(batch_date: str):
+    run_cli(["python","-m","src.pipeline.cli","run","--source","__SOURCE__","--date",batch_date],
+            batch_date, "__BLOCK__", timeout_s=1800)
