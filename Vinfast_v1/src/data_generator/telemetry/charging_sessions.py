@@ -193,7 +193,8 @@ def _segment_to_session(
         kwh = float(np.sum(pws * dts / 3600.0))
     else:
         ts = pd.to_datetime(seg["event_timestamp"], utc=True)
-        dts = ts.diff().dt.total_seconds().fillna(0).to_numpy()
+        # copy: to_numpy() có thể trả mảng read-only (pandas CoW) mà dòng dưới cần gán dts[0]
+        dts = ts.diff().dt.total_seconds().fillna(0).to_numpy(dtype="float64", copy=True)
         if len(dts) > 1:
             median_dt = float(np.median(dts[1:][dts[1:] > 0])) if (dts[1:] > 0).any() else 30.0
             dts[0] = median_dt
