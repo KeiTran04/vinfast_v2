@@ -1,0 +1,4 @@
+name: full_daily
+schedule: "0 1 * * *"
+timezone: Asia/Ho_Chi_Minh
+retries: { b01: 2, b02: 2, b03: 2, b04: 2, b05: 1, b07: 1 }
