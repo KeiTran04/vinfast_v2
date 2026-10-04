@@ -2,5 +2,12 @@
 logs/*.jsonl
 data/*
 !data/.gitkeep
+# runtime artifacts của pipeline/dbt/metabase (không commit)
+Vinfast_v1/data/
+Vinfast_v1/logs/
+Vinfast_v1/dbt_project/dbt_packages/
+Vinfast_v1/dbt_project/target/
+Vinfast_v1/dbt_project/logs/
+Vinfast_v1/metabase/plugins/sample-database.sqlite
 __pycache__/
 *.pyc
