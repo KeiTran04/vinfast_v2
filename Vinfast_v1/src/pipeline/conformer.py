@@ -228,12 +228,14 @@ def _write_minio(df: pd.DataFrame, dest: str, partition_date: str | None = None)
     key = f"{key_prefix}/{partition_date}/data.parquet" if partition_date else f"{key_prefix}/data.parquet"
 
     endpoint = os.getenv("MINIO_ENDPOINT", "http://localhost:9100")
+    addressing = os.getenv("S3_ADDRESSING_STYLE", "auto")  # path cho S3 mock (moto) ở CI
     s3 = boto3.client(
         "s3",
         endpoint_url=endpoint,
         aws_access_key_id="vinfast",
         aws_secret_access_key="vinfast123",
-        config=Config(connect_timeout=2, read_timeout=2, retries={"max_attempts": 0}),
+        config=Config(connect_timeout=2, read_timeout=2, retries={"max_attempts": 0},
+                      s3={"addressing_style": addressing}),
     )
 
     buf = io.BytesIO()

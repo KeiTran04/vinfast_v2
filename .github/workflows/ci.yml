@@ -24,6 +24,7 @@ jobs:
       MINIO_ENDPOINT: http://localhost:9100
       MINIO_ROOT_USER: vinfast
       MINIO_ROOT_PASSWORD: vinfast123
+      S3_ADDRESSING_STYLE: path
       CLICKHOUSE_HOST: localhost
       CLICKHOUSE_USER: vinfast
       CLICKHOUSE_PASSWORD: vinfast123
@@ -33,27 +34,35 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r Vinfast_v1/requirements.txt
-      - name: Start minio and clickhouse
+      - name: Start s3 mock and clickhouse
         run: |
           docker run -d --name minio -p 9100:9000 \
-            -e MINIO_ROOT_USER=vinfast -e MINIO_ROOT_PASSWORD=vinfast123 \
-            quay.io/minio/minio:latest server /data --console-address ":9001"
+            -e MOTO_S3_DEFAULT_KEY_BUFFER_SIZE=1048576 \
+            motoserver/moto:5.2.3 moto_server s3 -H 0.0.0.0 -p 9000
           docker run -d --name clickhouse --link minio:minio -p 8123:8123 -p 9000:9000 \
             -e CLICKHOUSE_USER=vinfast -e CLICKHOUSE_PASSWORD=vinfast123 -e CLICKHOUSE_DB=vinfast \
             clickhouse/clickhouse-server:24.8
           for i in $(seq 1 30); do
-            curl -sf http://localhost:9100/minio/health/live && break || sleep 2
+            curl -sf http://localhost:9100/moto-api/ && break || sleep 2
           done
           for i in $(seq 1 30); do
             docker exec clickhouse clickhouse-client --query "SELECT 1" && break || sleep 2
           done
       - name: Create buckets
         run: |
-          docker run --rm --link minio:minio --entrypoint /bin/sh quay.io/minio/mc:latest -c "
-            mc alias set local http://minio:9000 vinfast vinfast123
-            mc mb local/vinfast-bronze --ignore-existing
-            mc mb local/vinfast-silver --ignore-existing
-            mc mb local/vinfast-gold --ignore-existing
+          python -c "
+          import boto3
+          from botocore.config import Config
+          s3 = boto3.client('s3', endpoint_url='http://localhost:9100',
+                            aws_access_key_id='vinfast', aws_secret_access_key='vinfast123',
+                            region_name='us-east-1',
+                            config=Config(s3={'addressing_style': 'path'}))
+          for b in ['vinfast-bronze', 'vinfast-silver', 'vinfast-gold']:
+              try:
+                  s3.create_bucket(Bucket=b)
+              except s3.exceptions.BucketAlreadyOwnedByYou:
+                  pass
+          print(s3.list_buckets()['Buckets'])
           "
       - run: python -m src.data_generator.cli generate --start-date 2026-08-10 --end-date 2026-08-10 --vehicles 5 --seed 42
         working-directory: Vinfast_v1

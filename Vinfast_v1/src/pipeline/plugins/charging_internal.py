@@ -32,12 +32,14 @@ class ChargingInternalPlugin(SourcePlugin):
             from botocore.config import Config
 
             endpoint = os.getenv("MINIO_ENDPOINT", "http://localhost:9100")
+            addressing = os.getenv("S3_ADDRESSING_STYLE", "auto")  # path cho S3 mock (moto) ở CI
             s3 = boto3.client(
                 "s3",
                 endpoint_url=endpoint,
                 aws_access_key_id="vinfast",
                 aws_secret_access_key="vinfast123",
-                config=Config(connect_timeout=2, read_timeout=2, retries={"max_attempts": 0}),
+                config=Config(connect_timeout=2, read_timeout=2, retries={"max_attempts": 0},
+                              s3={"addressing_style": addressing}),
             )
             obj = s3.get_object(Bucket="vinfast-silver", Key=self.VEHICLES_S3_KEY)
             vdf = pd.read_parquet(io.BytesIO(obj["Body"].read()))

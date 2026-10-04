@@ -29,9 +29,13 @@ def main(batch_date: str):
     # doc Silver via boto3 + Gold via clickhouse-connect, so 2 cap entities/telemetry
     import boto3
     import clickhouse_connect
+    from botocore.config import Config
+    addressing = os.environ.get("S3_ADDRESSING_STYLE", "auto")  # path cho S3 mock (moto) ở CI
     s3 = boto3.client("s3", endpoint_url=os.environ.get("MINIO_ENDPOINT", "http://minio:9000"),
                       aws_access_key_id=os.environ.get("MINIO_ROOT_USER", "vinfast"),
-                      aws_secret_access_key=os.environ.get("MINIO_ROOT_PASSWORD", "vinfast123"))
+                      aws_secret_access_key=os.environ.get("MINIO_ROOT_PASSWORD", "vinfast123"),
+                      config=Config(connect_timeout=5, read_timeout=10,
+                                    s3={"addressing_style": addressing}))
     ch = clickhouse_connect.get_client(host=os.environ.get("CLICKHOUSE_HOST", "clickhouse"),
                                        username=os.environ.get("CLICKHOUSE_USER", "vinfast"),
                                        password=os.environ.get("CLICKHOUSE_PASSWORD", "vinfast123"),
