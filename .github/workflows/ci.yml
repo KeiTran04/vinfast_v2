@@ -37,7 +37,7 @@ jobs:
         run: |
           docker run -d --name minio -p 9100:9000 \
             -e MINIO_ROOT_USER=vinfast -e MINIO_ROOT_PASSWORD=vinfast123 \
-            minio/minio:latest server /data --console-address ":9001"
+            quay.io/minio/minio:latest server /data --console-address ":9001"
           docker run -d --name clickhouse --link minio:minio -p 8123:8123 -p 9000:9000 \
             -e CLICKHOUSE_USER=vinfast -e CLICKHOUSE_PASSWORD=vinfast123 -e CLICKHOUSE_DB=vinfast \
             clickhouse/clickhouse-server:24.8
@@ -49,7 +49,7 @@ jobs:
           done
       - name: Create buckets
         run: |
-          docker run --rm --link minio:minio --entrypoint /bin/sh minio/mc:latest -c "
+          docker run --rm --link minio:minio --entrypoint /bin/sh quay.io/minio/mc:latest -c "
             mc alias set local http://minio:9000 vinfast vinfast123
             mc mb local/vinfast-bronze --ignore-existing
             mc mb local/vinfast-silver --ignore-existing
