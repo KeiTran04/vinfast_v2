@@ -38,7 +38,7 @@ jobs:
         run: |
           docker run -d --name minio -p 9100:9000 \
             --entrypoint moto_server \
-            motoserver/moto:5.2.3 s3 -H 0.0.0.0 -p 9000
+            motoserver/moto:5.2.3 -H 0.0.0.0 -p 9000
           docker ps -a || true
           docker logs minio 2>&1 || true
           docker run -d --name clickhouse --link minio:minio -p 8123:8123 -p 9000:9000 \
