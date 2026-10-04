@@ -1,3 +1,4 @@
 .env
 logs/*.jsonl
-data/
+data/*
+!data/.gitkeep

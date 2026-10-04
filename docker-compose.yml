@@ -56,14 +56,16 @@ services:
       JAVA_TIMEZONE: Asia/Ho_Chi_Minh
       MB_PLUGINS_DIR: /plugins
     volumes:
-      - ./metabase/plugins:/plugins
+      - ./Vinfast_v1/metabase/plugins:/plugins
       - metabase_data:/metabase-data
     depends_on:
       clickhouse:
         condition: service_healthy
 
   mageai:
-    build: { context: ./mage }
+    build:
+      context: ./mage
+      dockerfile: Dockerfile.mage
     ports: ["6789:6789"]
     env_file: .env
     environment:
