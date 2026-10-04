@@ -1,9 +1,17 @@
 from __future__ import annotations
-import json, os, subprocess, time, pathlib
+
+import json
+import os
+import pathlib
+import subprocess
+import time
+
+
 def run_cli(cmd: list[str], batch_date: str, block: str, cwd: str = "/home/code",
             timeout_s: int = 1800) -> dict:
     t0 = time.time()
-    cp = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout_s)
+    cp = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout_s,
+                        check=False)
     rec = {"block": block, "batch_date": batch_date, "cmd": " ".join(cmd),
            "exit_code": cp.returncode, "duration_s": round(time.time()-t0, 1)}
     logdir = pathlib.Path(os.environ.get("MAGE_LOG_DIR", "logs"))

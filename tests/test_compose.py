@@ -1,5 +1,7 @@
 # tests/test_compose.py
-import pathlib, yaml
+import pathlib
+
+import yaml
 
 
 def test_compose():

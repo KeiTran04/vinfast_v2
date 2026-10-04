@@ -1,5 +1,7 @@
 # scripts/verify_p0.py
-import pathlib, sys
+import pathlib
+import sys
+
 base = pathlib.Path("Vinfast_v1")
 checks = [
     base / "docker-compose.yml",

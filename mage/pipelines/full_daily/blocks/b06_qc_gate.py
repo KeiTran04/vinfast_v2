@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import os
 
 
@@ -26,7 +27,8 @@ def _silver_parquet_rowcount(s3, bucket: str, key: str) -> int:
 
 def main(batch_date: str):
     # doc Silver via boto3 + Gold via clickhouse-connect, so 2 cap entities/telemetry
-    import boto3, clickhouse_connect
+    import boto3
+    import clickhouse_connect
     s3 = boto3.client("s3", endpoint_url=os.environ.get("MINIO_ENDPOINT", "http://minio:9000"),
                       aws_access_key_id=os.environ.get("MINIO_ROOT_USER", "vinfast"),
                       aws_secret_access_key=os.environ.get("MINIO_ROOT_PASSWORD", "vinfast123"))

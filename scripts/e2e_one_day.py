@@ -1,5 +1,7 @@
 # scripts/e2e_one_day.py (check-only mode)
-import argparse, pathlib
+import argparse
+import pathlib
+
 p = argparse.ArgumentParser()
 p.add_argument("--date", default="2026-08-10")
 p.add_argument("--check-only", action="store_true")

@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 from datetime import datetime, timedelta
 
 
 def iter_dates(start: str, end: str) -> list[str]:
-    s = datetime.strptime(start, "%Y-%m-%d").date()
-    e = datetime.strptime(end, "%Y-%m-%d").date()
+    s = datetime.strptime(start, "%Y-%m-%d").date()  # noqa: DTZ007 - date-only batch param
+    e = datetime.strptime(end, "%Y-%m-%d").date()  # noqa: DTZ007 - date-only batch param
     out, d = [], s
     while d <= e:
         out.append(d.isoformat())

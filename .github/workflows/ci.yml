@@ -8,7 +8,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install ruff pyyaml
-      - run: ruff check .
+      - run: ruff check mage tests scripts
       - run: python -m compileall -q Vinfast_v1/src mage
   unit:
     runs-on: ubuntu-latest
@@ -20,15 +20,46 @@ jobs:
       - run: pytest -q tests/test_compose.py tests/test_blocks.py tests/test_qc_gate.py tests/test_backfill.py
   dbt:
     runs-on: ubuntu-latest
-    services:
-      clickhouse: { image: clickhouse/clickhouse-server:24.8, ports: ["8123:8123"] }
-      minio: { image: minio/minio:latest, ports: ["9100:9000"] }
+    env:
+      MINIO_ENDPOINT: http://localhost:9100
+      MINIO_ROOT_USER: vinfast
+      MINIO_ROOT_PASSWORD: vinfast123
+      CLICKHOUSE_HOST: localhost
+      CLICKHOUSE_USER: vinfast
+      CLICKHOUSE_PASSWORD: vinfast123
+      CLICKHOUSE_DB: vinfast
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r Vinfast_v1/requirements.txt
+      - name: Start minio and clickhouse
+        run: |
+          docker run -d --name minio -p 9100:9000 \
+            -e MINIO_ROOT_USER=vinfast -e MINIO_ROOT_PASSWORD=vinfast123 \
+            minio/minio:latest server /data --console-address ":9001"
+          docker run -d --name clickhouse --link minio:minio -p 8123:8123 -p 9000:9000 \
+            -e CLICKHOUSE_USER=vinfast -e CLICKHOUSE_PASSWORD=vinfast123 -e CLICKHOUSE_DB=vinfast \
+            clickhouse/clickhouse-server:24.8
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:9100/minio/health/live && break || sleep 2
+          done
+          for i in $(seq 1 30); do
+            docker exec clickhouse clickhouse-client --query "SELECT 1" && break || sleep 2
+          done
+      - name: Create buckets
+        run: |
+          docker run --rm --link minio:minio --entrypoint /bin/sh minio/mc:latest -c "
+            mc alias set local http://minio:9000 vinfast vinfast123
+            mc mb local/vinfast-bronze --ignore-existing
+            mc mb local/vinfast-silver --ignore-existing
+            mc mb local/vinfast-gold --ignore-existing
+          "
       - run: python -m src.data_generator.cli generate --start-date 2026-08-10 --end-date 2026-08-10 --vehicles 5 --seed 42
         working-directory: Vinfast_v1
-      - run: python -m dbt.cli.main deps --profiles-dir . && python -m dbt.cli.main run --profiles-dir . && python -m dbt.cli.main test --profiles-dir .
+      - run: python -m src.data_generator.cli mock-raw --source all --seed 42
+        working-directory: Vinfast_v1
+      - run: python -m src.pipeline.cli run --all --date 2026-08-10
+        working-directory: Vinfast_v1
+      - run: python -m dbt.cli.main deps --profiles-dir . && python -m dbt.cli.main run --profiles-dir . --target docker && python -m dbt.cli.main test --profiles-dir . --target docker
         working-directory: Vinfast_v1/dbt_project
