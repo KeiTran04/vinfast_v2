@@ -17,35 +17,24 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio:latest
+    # S3 API substitute bằng Moto (minio/minio + minio/mc đã bị gỡ khỏi Docker Hub,
+    # quay.io chặn pull ẩn danh, dl.min.io trả 410). Giữ tên service + port S3 9000
+    # để SQL s3('http://minio:9000/...') của ClickHouse không đổi. Không còn console UI :9101.
+    image: motoserver/moto:5.2.3
+    entrypoint: moto_server
+    command: -H 0.0.0.0 -p 9000
     ports:
       - "9100:9000"
-      - "9101:9001"
     environment:
       MINIO_ROOT_USER: vinfast
       MINIO_ROOT_PASSWORD: vinfast123
-    command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9000/moto-api/', timeout=3)\""]
       interval: 5s
       timeout: 3s
-      retries: 10
-
-  minio-init:
-    image: minio/mc:latest
-    depends_on:
-      minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      mc alias set local http://minio:9000 vinfast vinfast123;
-      mc mb local/vinfast-bronze --ignore-existing;
-      mc mb local/vinfast-silver --ignore-existing;
-      mc mb local/vinfast-gold --ignore-existing;
-      echo 'Buckets created successfully.';
-      "
+      retries: 20
 
   metabase:
     image: metabase/metabase:latest

@@ -91,6 +91,14 @@ def _try_write_minio(
     ent = f"_{entity_name}" if entity_name else ""
     key = f"{prefix.rstrip('/')}/{batch_date}/{batch_date}{ent}.parquet"
 
+    try:  # thay minio-init/mc: tự tạo bucket nếu chưa có (tương thích MinIO + Moto)
+        s3.head_bucket(Bucket=bucket)
+    except Exception:
+        try:
+            s3.create_bucket(Bucket=bucket)
+        except Exception:
+            pass
+
     buf = io.BytesIO()
     df.to_parquet(buf, coerce_timestamps="us", compression="snappy")
     buf.seek(0)

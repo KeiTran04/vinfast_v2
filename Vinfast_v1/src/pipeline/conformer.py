@@ -241,4 +241,11 @@ def _write_minio(df: pd.DataFrame, dest: str, partition_date: str | None = None)
     buf = io.BytesIO()
     df.to_parquet(buf, coerce_timestamps="us", compression="snappy")
     buf.seek(0)
+    try:  # thay minio-init/mc: tự tạo bucket nếu chưa có (tương thích MinIO + Moto)
+        s3.head_bucket(Bucket=bucket)
+    except Exception:
+        try:
+            s3.create_bucket(Bucket=bucket)
+        except Exception:
+            pass
     s3.put_object(Bucket=bucket, Key=key, Body=buf.getvalue())
