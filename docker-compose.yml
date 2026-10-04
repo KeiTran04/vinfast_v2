@@ -80,6 +80,11 @@ services:
     depends_on:
       minio: { condition: service_healthy }
       clickhouse: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:6789/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # # --- Airflow 3 (Phase 5) ---
   # airflow-db:

@@ -1,0 +1,34 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install ruff pyyaml
+      - run: ruff check .
+      - run: python -m compileall -q Vinfast_v1/src mage
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r Vinfast_v1/requirements.txt pytest pyyaml
+      - run: pytest -q tests/test_compose.py tests/test_blocks.py tests/test_qc_gate.py tests/test_backfill.py
+  dbt:
+    runs-on: ubuntu-latest
+    services:
+      clickhouse: { image: clickhouse/clickhouse-server:24.8, ports: ["8123:8123"] }
+      minio: { image: minio/minio:latest, ports: ["9100:9000"] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -r Vinfast_v1/requirements.txt
+      - run: python -m src.data_generator.cli generate --start-date 2026-08-10 --end-date 2026-08-10 --vehicles 5 --seed 42
+        working-directory: Vinfast_v1
+      - run: python -m dbt.cli.main deps --profiles-dir . && python -m dbt.cli.main compile --profiles-dir .
+        working-directory: Vinfast_v1/dbt_project
