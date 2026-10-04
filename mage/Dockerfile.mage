@@ -1,0 +1,4 @@
+FROM mageai/mageai:0.9.72
+COPY requirements.mage.txt /tmp/requirements.mage.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.mage.txt
+WORKDIR /home/code

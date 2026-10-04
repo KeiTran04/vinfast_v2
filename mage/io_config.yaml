@@ -1,0 +1,4 @@
+version: 0.1
+default:
+  MINIO_ENDPOINT: "{{ env_var('MINIO_ENDPOINT', 'http://minio:9000') }}"
+  CLICKHOUSE_HOST: "{{ env_var('CLICKHOUSE_HOST', 'clickhouse') }}"
